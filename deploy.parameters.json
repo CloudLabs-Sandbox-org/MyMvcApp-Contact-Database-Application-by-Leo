@@ -14,10 +14,27 @@
       "metadata": {
         "description": "El nombre de la cuenta de almacenamiento."
       }
+    },
+    "appServicePlanName": {
+      "type": "string",
+      "defaultValue": "myAppServicePlan",
+      "metadata": {
+        "description": "El nombre del plan de App Service."
+      }
+    },
+    "webAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "El nombre de la aplicación web."
+      }
     }
   },
   "variables": {
-    "storageAccountType": "Standard_LRS"
+    "storageAccountType": "Standard_LRS",
+    "appServicePlanSku": {
+      "name": "F1",
+      "tier": "Free"
+    }
   },
   "resources": [
     {
@@ -30,12 +47,38 @@
       },
       "kind": "StorageV2",
       "properties": {}
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-03-01",
+      "name": "[parameters('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "sku": "[variables('appServicePlanSku')]",
+      "properties": {
+        "reserved": false
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[parameters('webAppName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+      }
     }
   ],
   "outputs": {
     "storageAccountName": {
       "type": "string",
       "value": "[parameters('storageAccountName')]"
+    },
+    "webAppUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('webAppName'), '.azurewebsites.net')]"
     }
   }
 }
