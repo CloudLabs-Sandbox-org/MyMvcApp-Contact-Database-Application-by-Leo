@@ -8,59 +8,136 @@ public class UserController : Controller
 {
     public static System.Collections.Generic.List<User> userlist = new System.Collections.Generic.List<User>();
 
-        // GET: User
-        public ActionResult Index()
+    public ActionResult Index(string searchName)
+    {
+        // Filtra la lista de usuarios si se proporciona un nombre de búsqueda
+        var filteredUsers = string.IsNullOrEmpty(searchName)
+            ? userlist
+            : userlist.Where(u => u.Name.Contains(searchName, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        // Devuelve la vista con la lista filtrada
+        return View(filteredUsers);
+    }
+
+    // GET: User/Details/5
+    public ActionResult Details(int id)
+    {
+        // Busca el usuario en la lista por ID
+        var user = userlist.FirstOrDefault(u => u.Id == id);
+
+        if (user == null)
         {
-            // Implement the Index method here
+            // Si no se encuentra el usuario, devuelve un resultado de "No encontrado"
+            return NotFound();
         }
 
-        // GET: User/Details/5
-        public ActionResult Details(int id)
+        // Devuelve la vista con los detalles del usuario
+        return View(user);
+    }
+    public ActionResult Create()
+    {
+        // Devuelve la vista para crear un nuevo usuario
+        return View();
+    }
+
+    // POST: User/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult Create(User user)
+    {
+        // Asigna el ID si está en cero o si deseas incrementarlo siempre
+        user.Id = userlist.Any() ? userlist.Max(u => u.Id) + 1 : 1;
+        // Verifica si el modelo es válido
+        if (ModelState.IsValid)
         {
-            // Implement the details method here
+            // Agrega el nuevo usuario a la lista
+            userlist.Add(user);
+
+            // Redirige al índice para mostrar la lista actualizada
+            return RedirectToAction("Index");
         }
 
-        // GET: User/Create
-        public ActionResult Create()
+        // Si el modelo no es válido, devuelve la vista con los errores
+        return View(user);
+    }
+    // GET: User/Edit/5
+    public ActionResult Edit(int id)
+    {
+        // Busca el usuario en la lista por ID
+        var user = userlist.FirstOrDefault(u => u.Id == id);
+
+        if (user == null)
         {
-            //Implement the Create method here
+            // Si no se encuentra el usuario, devuelve un resultado de "No encontrado"
+            return NotFound();
         }
 
-        // POST: User/Create
-        [HttpPost]
-        public ActionResult Create(User user)
+        // Devuelve la vista con el usuario a editar
+        return View(user);
+    }
+
+    // POST: User/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult Edit(int id, User updatedUser)
+    {
+        // Busca el usuario en la lista por ID
+        var user = userlist.FirstOrDefault(u => u.Id == id);
+
+        if (user == null)
         {
-            // Implement the Create method (POST) here
+            // Si no se encuentra el usuario, devuelve un resultado de "No encontrado"
+            return NotFound();
         }
 
-        // GET: User/Edit/5
-        public ActionResult Edit(int id)
+        if (ModelState.IsValid)
         {
-            // This method is responsible for displaying the view to edit an existing user with the specified ID.
-            // It retrieves the user from the userlist based on the provided ID and passes it to the Edit view.
+            // Actualiza los datos del usuario
+            user.Name = updatedUser.Name;
+            user.Email = updatedUser.Email;
+
+            // Redirige al índice para mostrar la lista actualizada
+            return RedirectToAction("Index");
         }
 
-        // POST: User/Edit/5
-        [HttpPost]
-        public ActionResult Edit(int id, User user)
+        // Si el modelo no es válido, devuelve la vista con los errores
+        return View(updatedUser);
+    }
+
+    // GET: User/Delete/5
+    public ActionResult Delete(int id)
+    {
+        // Busca el usuario en la lista por ID
+        var user = userlist.FirstOrDefault(u => u.Id == id);
+
+        if (user == null)
         {
-            // This method is responsible for handling the HTTP POST request to update an existing user with the specified ID.
-            // It receives user input from the form submission and updates the corresponding user's information in the userlist.
-            // If successful, it redirects to the Index action to display the updated list of users.
-            // If no user is found with the provided ID, it returns a HttpNotFoundResult.
-            // If an error occurs during the process, it returns the Edit view to display any validation errors.
+            // Si no se encuentra el usuario, devuelve un resultado de "No encontrado"
+            return NotFound();
         }
 
-        // GET: User/Delete/5
-        public ActionResult Delete(int id)
+        // Devuelve la vista con el usuario a eliminar
+        return View(user);
+    }
+
+    // POST: User/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public ActionResult DeleteConfirmed(int id)
+    {
+        // Busca el usuario en la lista por ID
+        var user = userlist.FirstOrDefault(u => u.Id == id);
+
+        if (user == null)
         {
-            // Implement the Delete method here
+            // Si no se encuentra el usuario, devuelve un resultado de "No encontrado"
+            return NotFound();
         }
 
-        // POST: User/Delete/5
-        [HttpPost]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            // Implement the Delete method (POST) here
-        }
+        // Elimina el usuario de la lista
+        userlist.Remove(user);
+
+        // Redirige al índice para mostrar la lista actualizada
+        return RedirectToAction("Index");
+    }
 }
